@@ -1,6 +1,7 @@
 # src/dialogue_manager.py
 import logging
 import json
+import re
 from typing import List, Dict, Any, Tuple, Optional
 
 # Use the generic response getter from llm_clients
@@ -81,7 +82,13 @@ class DialogueSimulator:
         )
 
         if router_output:
-            # Simple keyword check - make this more robust if needed (e.g., regex, JSON output)
+            # Prefer the explicit "next_role:<role>" the router prompt asks for. A plain substring
+            # check is fragile: a verbose reply that mentions "患者" anywhere would be read as Patient.
+            explicit = re.search(r"next_role\s*[:：]\s*(患者|助理|专家)", router_output)
+            if explicit:
+                logger.debug(f"Router decided (explicit): {explicit.group(1)}")
+                return explicit.group(1)
+            # Fallback: simple keyword check
             router_output_lower = router_output.lower() # Case-insensitive check
             if ROLE_PATIENT in router_output_lower:
                 logger.debug("Router decided: Patient")

@@ -11,6 +11,18 @@ from .utils import parse_expert_evaluation, load_prompt
 
 logger = logging.getLogger(__name__)
 
+# JSON format expected by prompts/one_step_expert.txt (two dimensions: reasoning and diagnosis).
+ONE_STEP_JSON_FORMAT = """{
+    "诊断依据评分": {
+        "reason": "给出该分数的简要理由",
+        "score": "评分（1-10）"
+    },
+    "诊断结果评分": {
+        "reason": "给出该分数的简要理由",
+        "score": "评分（1-10）"
+    }
+}"""
+
 def run_one_step_evaluation(case_data: Dict[str, Any], config, prompts: Dict[str, str]) -> Dict[str, Any]:
     """
     Runs the one-step diagnosis and evaluation for a single case.
@@ -144,6 +156,7 @@ def run_one_step_evaluation(case_data: Dict[str, Any], config, prompts: Dict[str
         # Placeholders expected: {expert_full_info}, {doctor_output}
         # The json_format is hardcoded inside the one-step expert prompt itself.
         expert_prompt_filled = expert_prompt_template.format(
+            json_format=ONE_STEP_JSON_FORMAT,
             expert_full_info=expert_case_info_str,
             doctor_output=doctor_output
         )
